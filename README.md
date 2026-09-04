@@ -201,12 +201,34 @@ git checkout -b feature/tk#-descripcion
 - No trabajes ni hagas commits directo en `main` ni en `develop`.
 - Crea tu rama desde `main` y dirige el PR a `develop`, con el nombre `feature/tk#-descripcion`.
 - **No actualices este README** a menos que la tarea del día lo diga específicamente.
-- **No borres** `docker/`, `docker-compose.yml` ni `.env.docker.example`.
+- **No borres** `docker/`, `docker-compose.yml`, `.env.docker.example`, `vercel.json`, `Dockerfile.vercel` ni `Caddyfile`.
 - Si te trabas más de 30 minutos, documenta el problema en el PR o en un comentario de la issue.
 
 ---
 
-## 9. Recursos útiles
+## 9. Despliegue en Vercel
+
+Producción: https://pizarra-taupe.vercel.app/
+
+El repo de GitHub ya está conectado a Vercel. **Cada merge a `main` despliega automáticamente.**
+
+Archivos de producción (no los borres):
+
+- `vercel.json`
+- `Dockerfile.vercel`
+- `Caddyfile`
+
+Cuando exista Laravel, el mentor configura en Vercel al menos:
+
+- `APP_KEY`
+- `APP_URL=https://pizarra-taupe.vercel.app`
+- Variables de base de datos externa (`DB_*`)
+
+Sin Laravel (`composer.json`) el build de contenedor no puede completar. Primero crea el proyecto (tarea TK1) y luego el deploy a `main` levantará la app.
+
+---
+
+## 10. Recursos útiles
 
 Usa estos recursos cuando te trabes. Empieza por la documentación oficial.
 
@@ -222,3 +244,4 @@ Usa estos recursos cuando te trabes. Empieza por la documentación oficial.
 | Playlist de apoyo (YouTube) | https://www.youtube.com/watch?v=FMsXJ84SRr4&list=PLZ2ovOgdI-kVtF2yQ2kiZetWWTmOQoUSG |
 | Docker Desktop | https://www.docker.com/products/docker-desktop/ |
 | Laravel Sail (referencia) | https://laravel.com/docs/13.x/sail |
+| Laravel en Vercel (Docker) | https://vercel.com/kb/guide/laravel-php-with-docker |

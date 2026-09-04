@@ -2,6 +2,7 @@
 .gitignore
 .env
 .env.*
+!.env.example
 !.env.docker.example
 node_modules
 vendor
@@ -10,5 +11,8 @@ storage/framework/cache
 storage/framework/sessions
 storage/framework/views
 bootstrap/cache
-*.md
+database/database.sqlite
+tests
 docker
+*.md
+.dockerignore
