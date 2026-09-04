@@ -10,7 +10,7 @@ Este README es la **guía general** del proyecto. El detalle día a día (qué h
 
 ## 1. Objetivo del producto
 
-Construir **Pizarra**, un tablero de tareas con **Laravel** y **Tailwind CSS**.
+Construir **Pizarra**, un tablero de tareas con **Laravel 13**, **Tailwind CSS** y entorno **Docker**.
 
 La aplicación debe permitir, como mínimo:
 
@@ -80,23 +80,22 @@ git config --global user.name "Tu Nombre"
 git config --global user.email "tu-correo@ejemplo.com"
 ```
 
-### Herramientas para Laravel
+### Docker (obligatorio)
 
-Asegúrate de tener instalado:
+Este proyecto viene **dockerizado**. No necesitas instalar PHP, Composer, MySQL ni Node en tu máquina para desarrollar.
 
-- [PHP](https://www.php.net/downloads) (versión compatible con Laravel actual)
-- [Composer](https://getcomposer.org/)
-- [Node.js](https://nodejs.org/) (para el frontend / Vite)
-- Una base de datos local (por ejemplo MySQL o SQLite)
+Instala:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows o Mac)
 
 Verifica:
 
 ```bash
-php -v
-composer -V
-node -v
-npm -v
+docker --version
+docker compose version
 ```
+
+Docker Desktop debe estar **encendido** antes de levantar el proyecto.
 
 ---
 
@@ -111,13 +110,65 @@ git clone https://github.com/Erickpe8/Pizarra.git
 cd Pizarra
 ```
 
-### Crear el proyecto en Laravel
+### Configurar variables de Docker
 
-Dentro de este repositorio clonado, crea el proyecto Laravel **tal como lo indica la tarea** en Projects:
+```bash
+cp .env.docker.example .env.docker
+```
 
-https://github.com/Erickpe8/Pizarra/projects
+- `.env.docker` → puertos y MySQL de Compose (**no lo subas a Git**).
+- `.env` → lo creará Laravel; debe usar `DB_HOST=mysql`.
 
-Sigue los pasos y el entregable de esa tarea. No inventes otro flujo: clona este repo, lee la tarea y crea Laravel donde y como ella lo especifique.
+### Levantar el entorno Docker
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Servicios:
+
+| Servicio | Para qué sirve | URL / puerto |
+|----------|----------------|--------------|
+| `nginx` + `app` | Laravel (PHP 8.3 FPM) | http://localhost:8080 |
+| `mysql` | Base de datos | `localhost:3306` |
+| `node` (perfil `frontend`) | Vite / Tailwind | http://localhost:5173 |
+
+### Crear el proyecto en Laravel 13 (dockerizado)
+
+Sigue la tarea en https://github.com/Erickpe8/Pizarra/projects
+
+Crea Laravel 13 dentro de este repo con Docker. No borres `docker/`, `docker-compose.yml` ni este README.
+
+```bash
+bash docker/bin/create-laravel.sh
+```
+
+Luego:
+
+```bash
+docker compose up -d
+```
+
+App: http://localhost:8080
+
+Frontend (cuando exista `package.json`):
+
+```bash
+docker compose --profile frontend up -d node
+```
+
+### Comandos útiles
+
+```bash
+docker compose exec app php artisan migrate
+docker compose exec app composer install
+docker compose exec app bash
+docker compose logs -f
+docker compose down
+```
+
+No elimines `docker/` ni `docker-compose.yml`.
 
 ---
 
@@ -150,13 +201,14 @@ git checkout -b feature/tk#-descripcion
 - No trabajes ni hagas commits directo en `main` ni en `develop`.
 - Crea tu rama desde `main` y dirige el PR a `develop`, con el nombre `feature/tk#-descripcion`.
 - **No actualices este README** a menos que la tarea del día lo diga específicamente.
+- **No borres** `docker/`, `docker-compose.yml` ni `.env.docker.example`.
 - Si te trabas más de 30 minutos, documenta el problema en el PR o en un comentario de la issue.
 
 ---
 
 ## 9. Recursos útiles
 
-Usa estos recursos cuando te trabes o quieras profundizar. **Primero lee la documentación oficial**; los tutoriales y videos son apoyo.
+Usa estos recursos cuando te trabes. Empieza por la documentación oficial.
 
 | Tema | Enlace |
 |------|--------|
@@ -168,12 +220,5 @@ Usa estos recursos cuando te trabes o quieras profundizar. **Primero lee la docu
 | Documentación JSDoc | https://jsdoc.app/ |
 | Tutorial de Git Flow | https://www.datacamp.com/tutorial/gitflow |
 | Playlist de apoyo (YouTube) | https://www.youtube.com/watch?v=FMsXJ84SRr4&list=PLZ2ovOgdI-kVtF2yQ2kiZetWWTmOQoUSG |
-
-**Cómo usarlos**
-
-- Dudas de Laravel (rutas, Blade, Eloquent, validación, etc.): documentación oficial.
-- No recuerdas un comando `php artisan ...`: guía de Artisan.
-- Montar o usar componentes visuales con Tailwind: guía Flowbite para Laravel y el catálogo de componentes.
-- Documentar código JavaScript (si aplica en el frontend): JSDoc.
-- Flujo de ramas y PRs: tutorial de Git Flow.
-- Quieres ver explicaciones en video: playlist de YouTube.
+| Docker Desktop | https://www.docker.com/products/docker-desktop/ |
+| Laravel Sail (referencia) | https://laravel.com/docs/13.x/sail |

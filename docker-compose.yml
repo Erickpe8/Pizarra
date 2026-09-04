@@ -1,0 +1,83 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: pizarra_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    env_file:
+      - path: .env.docker
+        required: false
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - pizarra
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: pizarra_nginx
+    restart: unless-stopped
+    env_file:
+      - path: .env.docker
+        required: false
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - pizarra
+    depends_on:
+      - app
+
+  mysql:
+    image: mysql:8.4
+    container_name: pizarra_mysql
+    restart: unless-stopped
+    env_file:
+      - path: .env.docker
+        required: false
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-pizarra}
+      MYSQL_USER: ${DB_USERNAME:-pizarra}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - pizarra_mysql_data:/var/lib/mysql
+    networks:
+      - pizarra
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD:-secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  node:
+    image: node:22-alpine
+    container_name: pizarra_node
+    working_dir: /var/www/html
+    env_file:
+      - path: .env.docker
+        required: false
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    networks:
+      - pizarra
+    profiles:
+      - frontend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+
+networks:
+  pizarra:
+    driver: bridge
+
+volumes:
+  pizarra_mysql_data:
