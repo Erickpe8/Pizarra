@@ -156,11 +156,24 @@ git checkout -b feature/tk#-descripcion
 
 ## 9. Recursos útiles
 
+Usa estos recursos cuando te trabes o quieras profundizar. **Primero lee la documentación oficial**; los tutoriales y videos son apoyo.
+
 | Tema | Enlace |
 |------|--------|
 | Tareas día a día | https://github.com/Erickpe8/Pizarra/projects |
-| Documentación de Laravel | https://laravel.com/framework/docs/documentation |
-| Componentes Tailwind (Flowbite) | https://flowbite.com/ |
+| Documentación oficial de Laravel | https://laravel.com/framework/docs/documentation |
+| Guía de comandos Artisan | https://www.cursosdesarrolloweb.es/blog/artisan-comandos-laravel-guia-completa |
+| Flowbite + Laravel (Tailwind) | https://flowbite.com/docs/getting-started/laravel/ |
+| Componentes Flowbite | https://flowbite.com/ |
+| Documentación JSDoc | https://jsdoc.app/ |
 | Tutorial de Git Flow | https://www.datacamp.com/tutorial/gitflow |
+| Playlist de apoyo (YouTube) | https://www.youtube.com/watch?v=FMsXJ84SRr4&list=PLZ2ovOgdI-kVtF2yQ2kiZetWWTmOQoUSG |
 
-Ante cualquier duda de Laravel, consulta primero la documentación oficial. Para la interfaz con Tailwind, Flowbite te facilitará mucho el trabajo visual.
+**Cómo usarlos**
+
+- Dudas de Laravel (rutas, Blade, Eloquent, validación, etc.): documentación oficial.
+- No recuerdas un comando `php artisan ...`: guía de Artisan.
+- Montar o usar componentes visuales con Tailwind: guía Flowbite para Laravel y el catálogo de componentes.
+- Documentar código JavaScript (si aplica en el frontend): JSDoc.
+- Flujo de ramas y PRs: tutorial de Git Flow.
+- Quieres ver explicaciones en video: playlist de YouTube.
