@@ -15,7 +15,6 @@ storage/framework/views
 bootstrap/cache
 database/database.sqlite
 tests
-docker
 *.md
 AGENTS.md
 boost.json

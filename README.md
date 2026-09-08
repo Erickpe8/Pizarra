@@ -117,14 +117,21 @@ cp .env.docker.example .env.docker
 ```
 
 - `.env.docker` → puertos y MySQL de Compose (**no lo subas a Git**).
-- `.env` → lo creará Laravel; debe usar `DB_HOST=mysql`.
+- `.env` → lo crea automáticamente el contenedor `app` en el primer arranque, con `DB_HOST=mysql`.
 
 ### Levantar el entorno Docker
 
+Con Docker Desktop encendido:
+
 ```bash
-docker compose build
-docker compose up -d
+docker compose --env-file .env.docker up -d --build
 ```
+
+La primera vez tarda unos minutos: instala Composer, genera la clave, corre migraciones y arranca Vite.
+
+Cuando los contenedores estén saludables, abre:
+
+**http://localhost:8080**
 
 Servicios:
 
@@ -132,7 +139,7 @@ Servicios:
 |----------|----------------|--------------|
 | `nginx` + `app` | Laravel (PHP 8.3 FPM) | http://localhost:8080 |
 | `mysql` | Base de datos | `localhost:3306` |
-| `node` (perfil `frontend`) | Vite / Tailwind | http://localhost:5173 |
+| `node` | Vite / Tailwind | http://localhost:5173 |
 
 ### Crear el proyecto en Laravel 13 (dockerizado)
 
@@ -152,11 +159,7 @@ docker compose up -d
 
 App: http://localhost:8080
 
-Frontend (cuando exista `package.json`):
-
-```bash
-docker compose --profile frontend up -d node
-```
+Vite arranca solo con `docker compose up`. No hace falta un perfil extra.
 
 ### Comandos útiles
 
