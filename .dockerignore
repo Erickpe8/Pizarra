@@ -1,5 +1,7 @@
 .git
 .gitignore
+.cursor
+.vercel
 .env
 .env.*
 !.env.example
@@ -15,4 +17,6 @@ database/database.sqlite
 tests
 docker
 *.md
+AGENTS.md
+boost.json
 .dockerignore
