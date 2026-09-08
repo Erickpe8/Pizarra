@@ -92,6 +92,14 @@ php -r '
 php artisan migrate --force
 php artisan storage:link --force >/dev/null 2>&1 || true
 
+if [ -f package.json ]; then
+    echo "Instalando node_modules..."
+    npm ci --no-audit --no-fund
+    echo "Compilando assets..."
+    npm run build
+    rm -f public/hot
+fi
+
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R ug+rwx storage bootstrap/cache || true
 
