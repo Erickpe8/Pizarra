@@ -43,15 +43,8 @@ mkdir -p \
 
 export COMPOSER_MEMORY_LIMIT=-1
 
-if [ ! -f vendor/autoload.php ]; then
-    echo "Instalando dependencias de Composer..."
-    composer install --no-interaction --prefer-dist --no-progress --no-scripts
-elif [ ! -d vendor/laravel/framework/src ]; then
-    echo "Reinstalando dependencias de Composer..."
-    composer install --no-interaction --prefer-dist --no-progress --no-scripts
-else
-    echo "Dependencias de Composer ya instaladas."
-fi
+echo "Instalando dependencias de Composer..."
+composer install --no-interaction --prefer-dist --no-progress --no-scripts
 
 if ! grep -qE '^APP_KEY=base64:' .env; then
     echo "Generando APP_KEY..."
@@ -81,6 +74,7 @@ php -r '
             echo "MySQL listo." . PHP_EOL;
             exit(0);
         } catch (Throwable $e) {
+            fwrite(STDERR, $e->getMessage() . PHP_EOL);
             sleep(2);
         }
     }
@@ -91,14 +85,6 @@ php -r '
 
 php artisan migrate --force
 php artisan storage:link --force >/dev/null 2>&1 || true
-
-if [ -f package.json ]; then
-    echo "Instalando node_modules..."
-    npm ci --no-audit --no-fund
-    echo "Compilando assets..."
-    npm run build
-    rm -f public/hot
-fi
 
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R ug+rwx storage bootstrap/cache || true
