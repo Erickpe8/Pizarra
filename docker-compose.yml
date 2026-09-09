@@ -1,3 +1,5 @@
+name: pizarra
+
 services:
   app:
     build:
@@ -9,21 +11,37 @@ services:
     env_file:
       - path: .env.docker
         required: false
+    environment:
+      APP_NAME: ${APP_NAME:-Pizarra}
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_DATABASE: ${DB_DATABASE:-pizarra}
+      DB_USERNAME: ${DB_USERNAME:-pizarra}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - ./:/var/www/html
+      - pizarra_vendor:/var/www/html/vendor
+      - pizarra_node_modules:/var/www/html/node_modules
     networks:
       - pizarra
     depends_on:
       mysql:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 180s
 
   nginx:
     image: nginx:1.27-alpine
     container_name: pizarra_nginx
     restart: unless-stopped
-    env_file:
-      - path: .env.docker
-        required: false
     ports:
       - "${APP_PORT:-8080}:80"
     volumes:
@@ -38,42 +56,40 @@ services:
     image: mysql:8.4
     container_name: pizarra_mysql
     restart: unless-stopped
-    env_file:
-      - path: .env.docker
-        required: false
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-pizarra}
       MYSQL_USER: ${DB_USERNAME:-pizarra}
       MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
     ports:
-      - "${DB_PORT:-3306}:3306"
+      - "${FORWARD_DB_PORT:-3306}:3306"
     volumes:
       - pizarra_mysql_data:/var/lib/mysql
     networks:
       - pizarra
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_ROOT_PASSWORD:-secret}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-psecret"]
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 30
+      start_period: 20s
 
   node:
-    image: node:22-alpine
+    image: node:22-bookworm-slim
     container_name: pizarra_node
+    restart: unless-stopped
     working_dir: /var/www/html
-    env_file:
-      - path: .env.docker
-        required: false
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ./:/var/www/html
+      - pizarra_vendor:/var/www/html/vendor
+      - pizarra_node_modules:/var/www/html/node_modules
     ports:
       - "${VITE_PORT:-5173}:5173"
     networks:
       - pizarra
-    profiles:
-      - frontend
-    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
 
 networks:
   pizarra:
@@ -81,3 +97,5 @@ networks:
 
 volumes:
   pizarra_mysql_data:
+  pizarra_vendor:
+  pizarra_node_modules:
