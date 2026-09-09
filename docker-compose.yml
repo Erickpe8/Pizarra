@@ -50,8 +50,7 @@ services:
     networks:
       - pizarra
     depends_on:
-      app:
-        condition: service_healthy
+      - app
 
   mysql:
     image: mysql:8.4
@@ -84,12 +83,13 @@ services:
       CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ./:/var/www/html
+      - pizarra_vendor:/var/www/html/vendor
       - pizarra_node_modules:/var/www/html/node_modules
     ports:
       - "${VITE_PORT:-5173}:5173"
     networks:
       - pizarra
-    command: sh -c "npm ci && npm run build && npm run dev -- --host 0.0.0.0 --port 5173"
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
 
 networks:
   pizarra:
