@@ -1,4 +1,9 @@
 <x-app-layout>
+    @if(auth()->user()->roles->isEmpty())
+
+        @include('teams.no-role')
+
+    @else
     <div class="min-h-screen bg-blue-300 p-6">
 
         <x-slot name="header">
@@ -11,7 +16,16 @@
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-blue-100 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        {{ __("You're logged in!") }}
+                         Bienvenido,
+                        {{ auth()->user()->name }}
+
+                        <div class="mt-4">
+
+                            Tu rol actual:
+
+                            <strong>
+                                {{ auth()->user()->getRoleNames()->first() }}
+                            </strong>
                     </div>
                 </div>
             </div>

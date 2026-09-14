@@ -25,5 +25,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::factory(99)->create();
+
+        $this->call(RoleSeeder::class);
     }
+    
 }
