@@ -3,70 +3,108 @@
 namespace App\Http\Controllers;
 
 use App\Models\Team;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class TeamController extends Controller
 {
-    // Mostrar formulario para crear equipo
-    public function create()
+    public function create(): View|RedirectResponse
     {
+        if ($this->userAlreadyHasTeam()) {
+            return redirect()->route('dashboard');
+        }
+
         return view('create');
     }
 
-    // Crear equipo
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        if ($this->userAlreadyHasTeam()) {
+            return redirect()->route('dashboard');
+        }
+
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
         ]);
 
         $team = Team::create([
-            'name' => $request->name,
+            'name' => $validated['name'],
         ]);
 
         $user = Auth::user();
-
         $user->teams()->attach($team->id);
 
-        setPermissionsTeamId($team->id);
+        $this->ensureRolesExist();
 
-        $user->assignRole('líder');
+        setPermissionsTeamId($team->id);
+        $user->assignRole('lider');
+
+        $request->session()->put('current_team_id', $team->id);
 
         return redirect()
             ->route('dashboard')
-            ->with('success', 'Equipo creado correctamente.');
+            ->with('success', 'Equipo creado correctamente. Ahora eres líder.');
     }
 
-    // Mostrar equipos disponibles
-    public function join()
+    public function join(): View|RedirectResponse
     {
-        $teams = Team::all();
+        if ($this->userAlreadyHasTeam()) {
+            return redirect()->route('dashboard');
+        }
 
-        return view('   join', compact('teams'));
+        $teams = Team::query()->orderBy('name')->get();
+
+        return view('join', compact('teams'));
     }
 
-    // Unirse a un equipo
-    public function storeJoin(Request $request)
+    public function storeJoin(Request $request): RedirectResponse
     {
-        $request->validate([
+        if ($this->userAlreadyHasTeam()) {
+            return redirect()->route('dashboard');
+        }
+
+        $validated = $request->validate([
             'team_id' => ['required', 'exists:teams,id'],
         ]);
 
         $user = Auth::user();
+        $team = Team::query()->findOrFail($validated['team_id']);
 
-        $team = Team::findOrFail($request->team_id);
+        $user->teams()->syncWithoutDetaching([$team->id]);
 
-        $user->teams()->syncWithoutDetaching([
-            $team->id
-        ]);
+        $this->ensureRolesExist();
 
         setPermissionsTeamId($team->id);
-
         $user->assignRole('trabajador');
+
+        $request->session()->put('current_team_id', $team->id);
 
         return redirect()
             ->route('dashboard')
-            ->with('success', 'Te has unido al equipo correctamente.');
+            ->with('success', 'Te has unido al equipo correctamente. Ahora eres trabajador.');
+    }
+
+    public function manage(): View
+    {
+        $teamId = getPermissionsTeamId();
+        $team = Team::query()->with('users')->findOrFail($teamId);
+
+        return view('teams.manage', [
+            'team' => $team,
+        ]);
+    }
+
+    private function userAlreadyHasTeam(): bool
+    {
+        return Auth::user()->teams()->exists();
+    }
+
+    private function ensureRolesExist(): void
+    {
+        Role::findOrCreate('lider', 'web');
+        Role::findOrCreate('trabajador', 'web');
     }
 }

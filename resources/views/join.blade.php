@@ -16,7 +16,7 @@
 
             @else
 
-                <form method="POST" action="{{ route('teams.join') }}">
+                <form method="POST" action="{{ route('teams.join.store') }}">
 
                     @csrf
 
