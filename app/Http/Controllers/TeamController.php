@@ -11,7 +11,7 @@ class TeamController extends Controller
     // Mostrar formulario para crear equipo
     public function create()
     {
-        return view('teams.create');
+        return view('create');
     }
 
     // Crear equipo
@@ -43,7 +43,7 @@ class TeamController extends Controller
     {
         $teams = Team::all();
 
-        return view('teams.join', compact('teams'));
+        return view('   join', compact('teams'));
     }
 
     // Unirse a un equipo

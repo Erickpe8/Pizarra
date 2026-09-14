@@ -1,7 +1,7 @@
 <x-app-layout>
     @if(auth()->user()->roles->isEmpty())
 
-        @include('teams.no-role')
+        @include('norole')
 
     @else
     <div class="min-h-screen bg-blue-300 p-6">
@@ -31,5 +31,5 @@
             </div>
         </div>
     </div>
-
+    @endif
 </x-app-layout>
