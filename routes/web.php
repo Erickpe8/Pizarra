@@ -25,6 +25,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/teams/manage', [TeamController::class, 'manage'])
         ->middleware('role:lider')
         ->name('teams.manage');
+    Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])
+    ->middleware('role:lider')
+    ->name('teams.edit');
+
+    Route::put('/teams/{team}', [TeamController::class, 'update'])
+    ->middleware('role:lider')
+    ->name('teams.update');
+
+    Route::delete('/teams/{team}', [TeamController::class, 'destroy'])
+    ->middleware('role:lider')
+    ->name('teams.destroy');
 });
 
 require __DIR__.'/auth.php';

@@ -13,7 +13,8 @@ class TeamController extends Controller
 {
     public function create(): View|RedirectResponse
     {
-        if ($this->userAlreadyHasTeam()) {
+        $user = Auth::user();
+        if ($user->teams()->exists() && !$user->hasRole('lider')) {
             return redirect()->route('dashboard');
         }
 
@@ -22,7 +23,9 @@ class TeamController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        if ($this->userAlreadyHasTeam()) {
+        $user = Auth::user();
+
+        if ($user->teams()->exists() && !$user->hasRole('lider')) {
             return redirect()->route('dashboard');
         }
 
@@ -34,12 +37,12 @@ class TeamController extends Controller
             'name' => $validated['name'],
         ]);
 
-        $user = Auth::user();
-        $user->teams()->attach($team->id);
+        $user->teams()->syncWithoutDetaching([$team->id]);
 
         $this->ensureRolesExist();
 
         setPermissionsTeamId($team->id);
+
         $user->assignRole('lider');
 
         $request->session()->put('current_team_id', $team->id);
@@ -78,6 +81,7 @@ class TeamController extends Controller
         $this->ensureRolesExist();
 
         setPermissionsTeamId($team->id);
+
         $user->assignRole('trabajador');
 
         $request->session()->put('current_team_id', $team->id);
@@ -87,16 +91,80 @@ class TeamController extends Controller
             ->with('success', 'Te has unido al equipo correctamente. Ahora eres trabajador.');
     }
 
-    public function manage(): View
-    {
-        $teamId = getPermissionsTeamId();
-        $team = Team::query()->with('users')->findOrFail($teamId);
 
-        return view('teams.manage', [
-            'team' => $team,
-        ]);
+    public function edit(Team $team): View
+    {
+    $user = Auth::user();
+
+    setPermissionsTeamId($team->id);
+
+    if (!$user->hasRole('lider')) {
+        abort(403);
     }
 
+    return view('teams.edit', [
+        'team' => $team,
+    ]);
+    }
+
+
+    public function update(Request $request, Team $team): RedirectResponse
+    {
+    $user = Auth::user();
+
+    setPermissionsTeamId($team->id);
+
+    if (!$user->hasRole('lider')) {
+        abort(403);
+    }
+
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+    ]);
+
+    $team->update([
+        'name' => $validated['name'],
+    ]);
+
+    return redirect()
+        ->route('teams.manage')
+        ->with('success', 'Equipo actualizado correctamente.');
+    }
+
+    public function destroy(Team $team): RedirectResponse
+    {
+    $user = Auth::user();
+
+    setPermissionsTeamId($team->id);
+
+    if (!$user->hasRole('lider')) {
+        abort(403);
+    }
+
+    $team->users()->detach();
+
+    $team->delete();
+
+    session()->forget('current_team_id');
+
+    return redirect()
+        ->route('teams.manage')
+        ->with('success', 'Equipo eliminado correctamente.');
+    }
+
+    public function manage(): View
+    {
+    $user = Auth::user();
+
+    $teams = $user->teams()
+        ->with('users')
+        ->orderBy('name')
+        ->get();
+
+    return view('teams.manage', [
+        'teams' => $teams,
+    ]);
+    }
     private function userAlreadyHasTeam(): bool
     {
         return Auth::user()->teams()->exists();

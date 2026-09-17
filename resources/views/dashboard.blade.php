@@ -41,6 +41,18 @@
                                 </a>
                             </div>
                         @endrole
+                        @role('lider')
+                            <div class="mt-6">
+                                <a
+                                    href="{{ route('teams.create') }}"
+                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                                >
+                                    Crear nuevo equipo
+                                </a>
+                            </div>
+                        @endrole
+
+                       
                     </div>
                 </div>
             </div>
