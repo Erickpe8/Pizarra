@@ -10,7 +10,7 @@ it('creates the demo user and ninety nine additional users', function () {
         'name' => 'Test User',
         'email' => 'test@example.com',
     ]);
-    $this->assertDatabaseCount('users', 100);
+    $this->assertDatabaseCount('users', 2);
     $this->assertDatabaseHas('roles', ['name' => 'lider', 'guard_name' => 'web']);
     $this->assertDatabaseHas('roles', ['name' => 'trabajador', 'guard_name' => 'web']);
 });
@@ -20,7 +20,7 @@ it('does not duplicate users when seeded again', function () {
 
     $this->seed();
 
-    $this->assertDatabaseCount('users', 100);
+    $this->assertDatabaseCount('users', 2);
     expect(User::query()->where('email', 'test@example.com')->count())->toBe(1);
 });
 

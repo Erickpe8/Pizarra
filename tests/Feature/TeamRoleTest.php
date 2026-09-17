@@ -115,3 +115,58 @@ it('seeds only lider and trabajador roles', function () {
     expect(Role::query()->where('guard_name', 'web')->pluck('name')->sort()->values()->all())
         ->toBe(['lider', 'trabajador']);
 });
+
+it('allows a lider to create more than one team', function () {
+    $user = User::factory()->create();
+
+    $firstTeam = Team::factory()->create([
+        'name' => 'Equipo Uno',
+    ]);
+
+    $user->teams()->attach($firstTeam->id);
+
+    setPermissionsTeamId($firstTeam->id);
+    $user->assignRole('lider');
+
+    $response = $this->actingAs($user)->post(route('teams.store'), [
+        'name' => 'Equipo Dos',
+    ]);
+
+    $response->assertRedirect(route('dashboard'));
+
+    $user->refresh();
+
+    expect($user->teams)->toHaveCount(2)
+        ->and(Team::query()->where('name', 'Equipo Uno')->exists())->toBeTrue()
+        ->and(Team::query()->where('name', 'Equipo Dos')->exists())->toBeTrue();
+});
+
+
+it('shows all teams belonging to a lider on the management page', function () {
+    $user = User::factory()->create();
+
+    $teamOne = Team::factory()->create([
+        'name' => 'Equipo Uno',
+    ]);
+
+    $teamTwo = Team::factory()->create([
+        'name' => 'Equipo Dos',
+    ]);
+
+    $user->teams()->attach([
+        $teamOne->id,
+        $teamTwo->id,
+    ]);
+
+    setPermissionsTeamId($teamOne->id);
+    $user->assignRole('lider');
+
+    $this->actingAs($user)
+        ->withSession([
+            'current_team_id' => $teamOne->id,
+        ])
+        ->get(route('teams.manage'))
+        ->assertOk()
+        ->assertSee('Equipo Uno')
+        ->assertSee('Equipo Dos');
+});
