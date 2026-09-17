@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 cd /var/www/html
 
 upsert_env() {
-    local key="$1"
-    local value="$2"
+    key="$1"
+    value="$2"
 
     if [ ! -f .env ]; then
         return
@@ -41,10 +41,17 @@ mkdir -p \
     storage/logs \
     bootstrap/cache
 
-export COMPOSER_MEMORY_LIMIT=-1
+export COMPOSER_MEMORY_LIMIT="${COMPOSER_MEMORY_LIMIT:-384M}"
 
-echo "Instalando dependencias de Composer..."
-composer install --no-interaction --prefer-dist --no-progress --no-scripts
+if [ ! -f vendor/autoload.php ]; then
+    echo "Instalando dependencias de Composer..."
+    composer install --no-interaction --prefer-dist --no-progress --no-scripts
+elif [ ! -d vendor/laravel/framework/src ]; then
+    echo "Reinstalando dependencias de Composer..."
+    composer install --no-interaction --prefer-dist --no-progress --no-scripts
+else
+    echo "Dependencias de Composer ya instaladas."
+fi
 
 if ! grep -qE '^APP_KEY=base64:' .env; then
     echo "Generando APP_KEY..."
@@ -86,8 +93,8 @@ php -r '
 php artisan migrate --force
 php artisan storage:link --force >/dev/null 2>&1 || true
 
-chown -R www-data:www-data storage bootstrap/cache || true
-chmod -R ug+rwx storage bootstrap/cache || true
+chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+chmod -R ug+rwx storage bootstrap/cache 2>/dev/null || true
 
 echo "Laravel listo. Iniciando PHP-FPM..."
 exec docker-php-entrypoint "$@"

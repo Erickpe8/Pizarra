@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(RoleSeeder::class);
+
         if (User::query()->where('email', 'test@example.com')->exists()) {
             return;
         }
@@ -24,6 +26,6 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        User::factory(99)->create();
+        User::factory()->create();
     }
 }

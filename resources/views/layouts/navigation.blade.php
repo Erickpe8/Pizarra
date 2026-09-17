@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @role('lider')
+                        <x-nav-link :href="route('teams.manage')" :active="request()->routeIs('teams.manage')">
+                            Gestionar equipo
+                        </x-nav-link>
+                    @endrole
                 </div>
             </div>
 
@@ -70,6 +76,12 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @role('lider')
+                <x-responsive-nav-link :href="route('teams.manage')" :active="request()->routeIs('teams.manage')">
+                    Gestionar equipo
+                </x-responsive-nav-link>
+            @endrole
         </div>
 
         <!-- Responsive Settings Options -->
