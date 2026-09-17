@@ -10,21 +10,31 @@ mkdir -p \
     storage/logs \
     bootstrap/cache
 
-if [ ! -f .env ]; then
+if [ ! -f .env ] && [ -z "${VERCEL_ENV:-}" ]; then
     cp .env.example .env
 fi
 
-if [ ! -f vendor/autoload.php ]; then
-    composer install --no-dev --no-interaction --prefer-dist --no-scripts
-    composer dump-autoload --no-dev --optimize
-fi
-
-if [ -z "${APP_KEY:-}" ] || ! grep -qE '^APP_KEY=base64:' .env; then
+if [ -z "${APP_KEY:-}" ]; then
     php artisan key:generate --force
 fi
 
+should_run_migrations=false
+
+if [ "${VERCEL_ENV:-}" = "production" ]; then
+    should_run_migrations=true
+fi
+
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
-    php artisan migrate --force
+    should_run_migrations=true
+fi
+
+if [ "${APP_ENV:-}" = "production" ] && [ -z "${VERCEL_ENV:-}" ]; then
+    should_run_migrations=true
+fi
+
+if [ "${should_run_migrations}" = "true" ]; then
+    echo "Ejecutando migraciones y seeders..."
+    php artisan migrate --force --seed
 fi
 
 exec frankenphp run --config /etc/frankenphp/Caddyfile
