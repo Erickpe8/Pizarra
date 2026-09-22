@@ -1,0 +1,27 @@
+## Local development image (docker-compose).
+## Production on Vercel uses Dockerfile.vercel (FrankenPHP).
+
+FROM webdevops/php-nginx:8.3-alpine
+
+ENV WEB_DOCUMENT_ROOT=/var/www/html/public \
+    WEB_DOCUMENT_INDEX=index.php \
+    PHP_DISPLAY_ERRORS=1 \
+    PHP_MEMORY_LIMIT=256M \
+    SERVICE_NGINX_CLIENT_MAX_BODY_SIZE=20m \
+    PHP_POST_MAX_SIZE=20M \
+    PHP_UPLOAD_MAX_FILESIZE=20M \
+    PHP_MAX_EXECUTION_TIME=120
+
+WORKDIR /var/www/html
+
+RUN apk add --no-cache git bash
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Provision: same pattern as SystemPOA (runs on container start before nginx/php)
+RUN mkdir -p /opt/docker/provision/entrypoint.d
+COPY docker-entrypoint.sh /opt/docker/provision/entrypoint.d/01-app-init.sh
+RUN sed -i 's/\r$//' /opt/docker/provision/entrypoint.d/01-app-init.sh \
+    && chmod +x /opt/docker/provision/entrypoint.d/01-app-init.sh
+
+# Code is mounted as a volume in docker-compose; not copied here.
