@@ -1,66 +1,107 @@
-<x-app-layout>
+<x-authenticated-layout>
 
-    <div class="max-w-2xl mx-auto py-12 px-6">
+    <div class="max-w-2xl mx-auto">
 
-        <div class="bg-white shadow rounded-xl p-8">
+        <div class="mb-8">
 
-            <h1 class="text-2xl font-bold text-gray-800 mb-6">
+            <p class="text-sm font-semibold text-indigo-700">
+                Equipos
+            </p>
+
+            <h1 class="mt-1 text-3xl font-bold text-gray-900">
                 Unirme a un equipo
             </h1>
 
-            @if($teams->isEmpty())
+            <p class="mt-2 text-gray-700">
+                Ingresa el nombre y la contraseña que te proporcionó el líder del equipo.
+            </p>
 
-                <p class="text-gray-600">
-                    No existen equipos disponibles.
-                </p>
+        </div>
 
-            @else
 
-                <form method="POST" action="{{ route('teams.join.store') }}">
+        <div class="bg-blue-100 border border-gray-200 shadow-sm rounded-xl p-8">
 
-                    @csrf
+            <form
+                method="POST"
+                action="{{ route('teams.join.store') }}"
+            >
+
+                @csrf
+
+
+                {{-- Nombre del equipo --}}
+                <div>
 
                     <label
-                        for="team_id"
+                        for="name"
                         class="block text-sm font-medium text-gray-700"
                     >
-                        Selecciona un equipo
+                        Nombre del equipo
                     </label>
 
-                    <select
-                        name="team_id"
-                        id="team_id"
-                        class="mt-2 block w-full rounded-lg border-gray-300"
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        value="{{ old('name') }}"
                         required
+                        autofocus
+                        autocomplete="organization"
+                        class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
 
-                        <option value="">
-                            Seleccionar equipo
-                        </option>
+                    @error('name')
 
-                        @foreach($teams as $team)
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ $message }}
+                        </p>
 
-                            <option value="{{ $team->id }}">
-                                {{ $team->name }}
-                            </option>
+                    @enderror
 
-                        @endforeach
+                </div>
 
-                    </select>
 
-                    <button
-                        type="submit"
-                        class="mt-6 w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold py-3 rounded-lg"
+                {{-- Contraseña --}}
+                <div class="mt-5">
+
+                    <label
+                        for="password"
+                        class="block text-sm font-medium text-gray-700"
                     >
-                        Unirme al equipo
-                    </button>
+                        Contraseña del equipo
+                    </label>
 
-                </form>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        autocomplete="current-password"
+                        class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
 
-            @endif
+                    @error('password')
+
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ $message }}
+                        </p>
+
+                    @enderror
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition"
+                >
+                    Unirme al equipo
+                </button>
+
+            </form>
 
         </div>
 
     </div>
 
-</x-app-layout>
+</x-authenticated-layout>
