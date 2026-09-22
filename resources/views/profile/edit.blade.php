@@ -1,29 +1,64 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+<x-authenticated-layout>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-blue-150 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
+    <div class="max-w-7xl mx-auto">
 
-            <div class="p-4 sm:p-8 bg-blue-150 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
+        <div class="mb-8">
 
-            <div class="p-4 sm:p-8 bg-blue-150 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
+            <p class="text-sm font-semibold text-indigo-700">
+                Cuenta
+            </p>
+
+            <h1 class="mt-1 text-3xl font-bold text-gray-900">
+                Mi perfil
+            </h1>
+
+            <p class="mt-2 text-gray-700">
+                Administra la información y configuración de tu cuenta.
+            </p>
+
         </div>
+
+
+        <div class="space-y-6">
+
+
+            {{-- Información personal --}}
+            <div class="bg-blue-100 border border-gray-200 shadow-sm rounded-xl p-6 sm:p-8">
+
+                <div class="max-w-xl">
+
+                    @include('profile.partials.update-profile-information-form')
+
+                </div>
+
+            </div>
+
+
+            {{-- Contraseña --}}
+            <div class="bg-blue-100 border border-gray-200 shadow-sm rounded-xl p-6 sm:p-8">
+
+                <div class="max-w-xl">
+
+                    @include('profile.partials.update-password-form')
+
+                </div>
+
+            </div>
+
+
+            {{-- Eliminar cuenta --}}
+            <div class="bg-blue-100 border border-gray-200 shadow-sm rounded-xl p-6 sm:p-8">
+
+                <div class="max-w-xl">
+
+                    @include('profile.partials.delete-user-form')
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-</x-app-layout>
+
+</x-authenticated-layout>

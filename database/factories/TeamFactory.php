@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Team;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * @extends Factory<Team>
@@ -19,6 +20,7 @@ class TeamFactory extends Factory
     {
         return [
             'name' => fake()->unique()->company(),
+            'password' => Hash::make('password'),
         ];
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -31,10 +32,12 @@ class TeamController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string', 'min:6'],
         ]);
 
         $team = Team::create([
             'name' => $validated['name'],
+            'password' => Hash::make($validated['password']),
         ]);
 
         $user->teams()->syncWithoutDetaching([$team->id]);
@@ -54,41 +57,74 @@ class TeamController extends Controller
 
     public function join(): View|RedirectResponse
     {
-        if ($this->userAlreadyHasTeam()) {
-            return redirect()->route('dashboard');
-        }
+    $user = Auth::user();
+    if ($user->teams()->exists() && !$user->hasRole('trabajador')) {
+        return redirect()->route('dashboard');
+    }
 
-        $teams = Team::query()->orderBy('name')->get();
-
-        return view('join', compact('teams'));
+    return view('join');
     }
 
     public function storeJoin(Request $request): RedirectResponse
     {
-        if ($this->userAlreadyHasTeam()) {
-            return redirect()->route('dashboard');
-        }
+    $user = Auth::user();
 
-        $validated = $request->validate([
-            'team_id' => ['required', 'exists:teams,id'],
-        ]);
+    if ($user->teams()->exists() && !$user->hasRole('trabajador')) {
+        return redirect()->route('dashboard');
+    }
 
-        $user = Auth::user();
-        $team = Team::query()->findOrFail($validated['team_id']);
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'password' => ['required', 'string'],
+    ]);
 
-        $user->teams()->syncWithoutDetaching([$team->id]);
+    $team = Team::query()
+        ->where('name', $validated['name'])
+        ->first();
 
-        $this->ensureRolesExist();
+    if (!$team) {
+        return back()
+            ->withErrors([
+                'name' => 'No existe un equipo con ese nombre.',
+            ])
+            ->withInput($request->only('name'));
+    }
 
-        setPermissionsTeamId($team->id);
+    if (
+        !$team->password ||
+        !Hash::check($validated['password'], $team->password)
+    ) {
+        return back()
+            ->withErrors([
+                'password' => 'La contraseña del equipo es incorrecta.',
+            ])
+            ->withInput($request->only('name'));
+    }
 
-        $user->assignRole('trabajador');
+    if ($user->teams()->where('teams.id', $team->id)->exists()) {
+        return back()
+            ->withErrors([
+                'name' => 'Ya perteneces a este equipo.',
+            ])
+            ->withInput($request->only('name'));
+    }
 
-        $request->session()->put('current_team_id', $team->id);
+    $user->teams()->syncWithoutDetaching([$team->id]);
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', 'Te has unido al equipo correctamente. Ahora eres trabajador.');
+    $this->ensureRolesExist();
+
+    setPermissionsTeamId($team->id);
+
+    $user->assignRole('trabajador');
+
+    $request->session()->put('current_team_id', $team->id);
+
+    return redirect()
+        ->route('dashboard')
+        ->with(
+            'success',
+            'Te has unido al equipo correctamente. Ahora eres trabajador.'
+        );
     }
 
 
@@ -152,6 +188,19 @@ class TeamController extends Controller
         ->with('success', 'Equipo eliminado correctamente.');
     }
 
+    public function myTeams(): View
+    {
+    $user = Auth::user();
+
+    $teams = $user->teams()
+        ->orderBy('name')
+        ->get();
+
+    return view('teams.my-teams', [
+        'teams' => $teams,
+    ]);
+    }
+
     public function manage(): View
     {
     $user = Auth::user();
@@ -164,10 +213,6 @@ class TeamController extends Controller
     return view('teams.manage', [
         'teams' => $teams,
     ]);
-    }
-    private function userAlreadyHasTeam(): bool
-    {
-        return Auth::user()->teams()->exists();
     }
 
     private function ensureRolesExist(): void
