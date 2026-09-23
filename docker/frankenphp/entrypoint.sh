@@ -33,8 +33,11 @@ if [ "${APP_ENV:-}" = "production" ] && [ -z "${VERCEL_ENV:-}" ]; then
 fi
 
 if [ "${should_run_migrations}" = "true" ]; then
-    echo "Ejecutando migraciones y seeders..."
-    php artisan migrate --force --seed
+    echo "Ejecutando migraciones..."
+    php artisan migrate --force
+
+    echo "Sembrando roles de producción..."
+    php artisan db:seed --class=Database\\Seeders\\RoleSeeder --force
 fi
 
 exec frankenphp run --config /etc/frankenphp/Caddyfile

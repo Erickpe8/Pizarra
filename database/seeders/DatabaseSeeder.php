@@ -17,6 +17,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RoleSeeder::class);
 
+        if (app()->isProduction()) {
+            return;
+        }
+
         if (User::query()->where('email', 'test@example.com')->exists()) {
             return;
         }
