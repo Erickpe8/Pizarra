@@ -130,6 +130,56 @@ class TeamController extends Controller
             );
     }
 
+    public function select(Request $request, Team $team): RedirectResponse
+    {
+        $user = Auth::user();
+
+        // Verificar que el usuario pertenece al equipo.
+        if (!$user->teams()->where('teams.id', $team->id)->exists()) {
+            abort(403);
+        }
+
+        // Establecer el equipo actual para Spatie.
+        $this->setTeamContext($team->id, $user);
+
+        // Guardar el equipo seleccionado en la sesión.
+        $request->session()->put('current_team_id', $team->id);
+
+        return redirect()
+            ->route('teams.workspace', $team)
+            ->with(
+                'success',
+                "Ahora estás trabajando en el equipo «{$team->name}»."
+            );
+    }
+
+    public function workspace(Team $team): View
+    {
+        $user = Auth::user();
+
+        // El usuario debe pertenecer al equipo.
+        if (!$user->teams()->where('teams.id', $team->id)->exists()) {
+            abort(403);
+        }
+
+        // Establecer el contexto del equipo.
+        $this->setTeamContext($team->id, $user);
+
+        // Obtener las tareas de este equipo.
+        $tasks = $team->tasks()
+            ->with([
+                'creator',
+                'assignee',
+            ])
+            ->latest()
+            ->get();
+
+        return view('teams.workspace', [
+            'team' => $team,
+            'tasks' => $tasks,
+        ]);
+    }
+
     public function manage(): View
     {
         $user = Auth::user();

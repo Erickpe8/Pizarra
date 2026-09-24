@@ -101,14 +101,44 @@
 
                                         @endif
 
+                                        @if (session('current_team_id') == $team->id)
+
+                                        <div class="mt-2">
+
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                                ✓ Equipo seleccionado
+                                            </span>
+
+                                        </div>
+
+                                    @endif
+
                                     </div>
+                                    
 
                                 </div>
 
 
-                                @if ($isLeader)
+                                <div class="flex flex-wrap gap-2">
 
-                                    <div class="flex flex-wrap gap-2">
+                                    {{-- Tanto líderes como trabajadores pueden seleccionar el equipo --}}
+                                    <form
+                                        method="POST"
+                                        action="{{ route('teams.select', $team) }}"
+                                    >
+                                        @csrf
+
+                                        <button
+                                            type="submit"
+                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                        >
+                                            Trabajar en este equipo
+                                        </button>
+                                    </form>
+
+
+                                    {{-- Solo el líder puede administrar el equipo --}}
+                                    @if ($isLeader)
 
                                         <a
                                             href="{{ route('teams.edit', $team) }}"
@@ -123,7 +153,6 @@
                                             action="{{ route('teams.destroy', $team) }}"
                                             onsubmit="return confirm('¿Estás seguro de que quieres eliminar este equipo? Esta acción no se puede deshacer.');"
                                         >
-
                                             @csrf
                                             @method('DELETE')
 
@@ -133,12 +162,11 @@
                                             >
                                                 Eliminar equipo
                                             </button>
-
                                         </form>
 
-                                    </div>
+                                    @endif
 
-                                @endif
+                                </div>
 
                             </div>
 
