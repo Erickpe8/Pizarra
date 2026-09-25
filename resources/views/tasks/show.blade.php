@@ -1,9 +1,13 @@
 <x-authenticated-layout>
 
+    <x-flash-message />
+
     <div class="max-w-5xl mx-auto px-6 py-8">
 
+        
+
         {{-- Encabezado --}}
-        <div class="bg-white rounded-2xl shadow-sm p-6">
+        <div class="bg-blue-100 rounded-2xl shadow-sm p-6">
 
             <div class="flex items-center justify-between">
 
@@ -17,26 +21,39 @@
                     </h1>
                 </div>
 
-                <a
-                    href="{{ route('teams.workspace', $team) }}"
-                    class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-                >
-                    ← Volver al equipo
-                </a>
+                <div class="flex items-center gap-2">
+
+                    @if (auth()->user()->hasRole('lider'))
+
+                        <a
+                            href="{{ route('tasks.edit', [$team, $task]) }}"
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                        >
+                            Editar tarea
+                        </a>
+
+                    @endif
+
+                    <a
+                        href="{{ route('teams.workspace', $team) }}"
+                        class="px-4 py-2 bg-blue-100 text-gray-700 rounded-lg hover:bg-blue-200 transition"
+                    >
+                        ← Volver al equipo
+                    </a>
+
+                </div>
+                
 
             </div>
 
         </div>
 
-
-        {{-- Información de la tarea --}}
-        <div class="mt-6 bg-white rounded-2xl shadow-sm p-6">
+        <div class="mt-6 bg-blue-100 rounded-2xl shadow-sm p-6">
 
             <h2 class="text-xl font-semibold text-gray-800 mb-6">
                 Detalles de la tarea
             </h2>
 
-            {{-- Descripción --}}
             <div class="mb-6">
 
                 <p class="text-sm font-semibold text-gray-500 mb-2">
@@ -49,8 +66,6 @@
 
             </div>
 
-
-            {{-- Información --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <div>

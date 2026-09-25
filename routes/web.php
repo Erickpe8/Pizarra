@@ -58,6 +58,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/teams/{team}/tasks/{task}', [TaskController::class, 'show'])
         ->name('tasks.show');
 
+    Route::get('/teams/{team}/tasks/{task}/edit', [TaskController::class, 'edit'])
+        ->name('tasks.edit');
+
+    Route::put('/teams/{team}/tasks/{task}', [TaskController::class, 'update'])
+        ->name('tasks.update');
+
     Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])
         ->middleware('role:lider')
         ->name('teams.edit');

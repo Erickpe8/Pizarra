@@ -31,13 +31,10 @@
         <form
             method="POST"
             action="{{ route('tasks.store', $team) }}"
-            class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6"
+            class="bg-blue-100 rounded-xl shadow-sm border border-blue-200 p-6 space-y-6"
         >
 
             @csrf
-
-
-            {{-- Título --}}
 
             <div>
 
@@ -67,9 +64,6 @@
 
             </div>
 
-
-            {{-- Descripción --}}
-
             <div>
 
                 <label
@@ -94,9 +88,6 @@
                 @enderror
 
             </div>
-
-
-            {{-- Estado --}}
 
             <div>
 
@@ -145,9 +136,6 @@
 
             </div>
 
-
-            {{-- Asignar a --}}
-
             <div>
 
                 <label
@@ -188,9 +176,6 @@
 
             </div>
 
-
-            {{-- Fecha de asignación --}}
-
             <div>
 
                 <label
@@ -216,9 +201,6 @@
 
             </div>
 
-
-            {{-- Fecha límite --}}
-
             <div>
 
                 <label
@@ -243,9 +225,6 @@
                 @enderror
 
             </div>
-
-
-            {{-- Tiempo estimado --}}
 
             <div>
 
@@ -275,7 +254,6 @@
             </div>
 
 
-            {{-- Botones --}}
 
             <div class="flex flex-wrap gap-3 pt-4">
 
@@ -285,6 +263,8 @@
                 >
                     Crear tarea
                 </button>
+
+                <x-flash-message />
 
                 <a
                     href="{{ route('teams.workspace', $team) }}"
