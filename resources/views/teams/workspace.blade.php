@@ -536,498 +536,1098 @@
 
     <script>
 
-        document.addEventListener('DOMContentLoaded', function () {
+        /**
+             * Inicializa todas las funcionalidades interactivas
+             * del tablero Kanban cuando el documento ha terminado
+             * de cargarse.
+             *
+             * Las funcionalidades incluyen:
+             *
+             * - Arrastrar y soltar tareas entre columnas.
+             * - Actualizar el estado de una tarea mediante AJAX.
+             * - Actualizar los contadores de las columnas.
+             * - Mostrar notificaciones al usuario.
+             * - Buscar y filtrar tareas.
+             *
+             * @listens DOMContentLoaded
+             */
+            document.addEventListener('DOMContentLoaded', function () {
 
-            const cards = document.querySelectorAll('.kanban-card');
-            const columns = document.querySelectorAll('.kanban-tasks');
+                /**
+                 * Obtiene todas las tarjetas de tareas del tablero.
+                 *
+                 * @type {NodeListOf<Element>}
+                 */
+                const cards =
+                    document.querySelectorAll('.kanban-card');
 
-            let draggedCard = null;
-            let originalColumn = null;
-            let originalStatus = null;
+                /**
+                 * Obtiene los contenedores de tareas de las
+                 * diferentes columnas del tablero.
+                 *
+                 * @type {NodeListOf<Element>}
+                 */
+                const columns =
+                    document.querySelectorAll('.kanban-tasks');
 
-            cards.forEach(function (card) {
+                /**
+                 * Tarjeta que actualmente está siendo arrastrada.
+                 *
+                 * @type {Element|null}
+                 */
+                let draggedCard = null;
 
-                card.addEventListener('dragstart', function (event) {
+                /**
+                 * Columna donde se encontraba originalmente
+                 * la tarjeta antes de ser movida.
+                 *
+                 * @type {Element|null}
+                 */
+                let originalColumn = null;
 
-                    draggedCard = card;
-                    originalColumn = card.parentElement;
-                    originalStatus = card.dataset.status;
+                /**
+                 * Estado que tenía originalmente la tarea
+                 * antes de comenzar el arrastre.
+                 *
+                 * @type {string|null}
+                 */
+                let originalStatus = null;
 
-                    card.classList.add('opacity-50','scale-95','rotate-1');
 
-                    event.dataTransfer.effectAllowed = 'move';
+                /**
+                 * Configura los eventos de arrastre para cada
+                 * tarjeta de tarea.
+                 *
+                 * @param {Element} card Tarjeta de tarea que se está configurando.
+                 * @returns {void}
+                 */
+                cards.forEach(function (card) {
 
-                    event.dataTransfer.setData(
-                        'text/plain',
-                        card.dataset.taskId
-                    );
+                    /**
+                     * Ejecuta la lógica inicial cuando el usuario
+                     * comienza a arrastrar una tarea.
+                     *
+                     * Guarda la tarjeta, su columna y su estado
+                     * original para poder restaurarlos si ocurre
+                     * algún error.
+                     *
+                     * @param {DragEvent} event Evento generado al comenzar el arrastre.
+                     * @returns {void}
+                     */
+                    card.addEventListener('dragstart', function (event) {
+
+                        draggedCard = card;
+
+                        originalColumn = card.parentElement;
+
+                        originalStatus = card.dataset.status;
+
+                        /**
+                         * Aplica estilos visuales para indicar
+                         * que la tarjeta está siendo arrastrada.
+                         */
+                        card.classList.add(
+                            'opacity-50',
+                            'scale-95',
+                            'rotate-1'
+                        );
+
+                        /**
+                         * Indica que la operación de arrastre
+                         * permite mover la tarjeta.
+                         */
+                        event.dataTransfer.effectAllowed = 'move';
+
+                        /**
+                         * Guarda el identificador de la tarea
+                         * dentro de los datos de la operación
+                         * de arrastre.
+                         *
+                         * @type {string}
+                         */
+                        event.dataTransfer.setData(
+                            'text/plain',
+                            card.dataset.taskId
+                        );
+
+                    });
+
+
+                    /**
+                     * Ejecuta la limpieza visual cuando termina
+                     * el arrastre de una tarea.
+                     *
+                     * @returns {void}
+                     */
+                    card.addEventListener('dragend', function () {
+
+                        /**
+                         * Elimina los estilos utilizados durante
+                         * el arrastre.
+                         */
+                        card.classList.remove(
+                            'opacity-50',
+                            'scale-95',
+                            'rotate-1'
+                        );
+
+                        /**
+                         * Limpia la referencia de la tarjeta
+                         * que estaba siendo arrastrada.
+                         */
+                        draggedCard = null;
+
+                    });
 
                 });
 
 
-                card.addEventListener('dragend', function () {
+                /**
+                 * Configura los eventos necesarios para que cada
+                 * columna pueda recibir tareas arrastradas.
+                 *
+                 * @param {Element} column Columna del tablero Kanban.
+                 * @returns {void}
+                 */
+                columns.forEach(function (column) {
 
-                    card.classList.remove('opacity-50','scale-95','rotate-1');
+                    /**
+                     * Permite que una tarjeta pueda ser soltada
+                     * dentro de la columna.
+                     *
+                     * @param {DragEvent} event Evento generado mientras
+                     * el usuario arrastra una tarjeta sobre la columna.
+                     * @returns {void}
+                     */
+                    column.addEventListener('dragover', function (event) {
 
-                    draggedCard = null;
+                        event.preventDefault();
 
-                });
+                        /**
+                         * Indica visualmente que la tarjeta puede
+                         * ser movida a esta columna.
+                         */
+                        event.dataTransfer.dropEffect = 'move';
 
-            });
+                        column.classList.add(
+                            'bg-indigo-50',
+                            'border-indigo-300'
+                        );
 
-            columns.forEach(function (column) {
-
-                column.addEventListener('dragover', function (event) {
-
-                    event.preventDefault();
-
-                    event.dataTransfer.dropEffect = 'move';
-
-                    column.classList.add(
-                        'bg-indigo-50',
-                        'border-indigo-300'
-                    );
-
-                });
-
-
-                column.addEventListener('dragleave', function () {
-
-                    column.classList.remove(
-                        'bg-indigo-50',
-                        'border-indigo-300'
-                    );
-
-                });
-
-                column.addEventListener('drop', async function (event) {
-
-                    event.preventDefault();
-
-                    column.classList.remove(
-                        'bg-indigo-50',
-                        'border-indigo-300'
-                    );
+                    });
 
 
-                    if (!draggedCard) {
-                        return;
-                    }
+                    /**
+                     * Elimina los estilos visuales de una columna
+                     * cuando la tarjeta deja de estar sobre ella.
+                     *
+                     * @returns {void}
+                     */
+                    column.addEventListener('dragleave', function () {
+
+                        column.classList.remove(
+                            'bg-indigo-50',
+                            'border-indigo-300'
+                        );
+
+                    });
 
 
-                    const newStatus = column.dataset.status;
+                    /**
+                     * Procesa el movimiento de una tarea cuando
+                     * el usuario la suelta dentro de una columna.
+                     *
+                     * Actualiza visualmente la tarea y posteriormente
+                     * envía el nuevo estado al servidor mediante
+                     * una petición PATCH.
+                     *
+                     * Si la actualización falla, la tarea vuelve
+                     * a su columna y estado originales.
+                     *
+                     * @param {DragEvent} event Evento generado al soltar
+                     * la tarjeta.
+                     * @returns {Promise<void>}
+                     */
+                    column.addEventListener('drop', async function (event) {
 
-                    if (newStatus === originalStatus) {
-                        return;
-                    }
+                        event.preventDefault();
 
-
-                    const taskId = draggedCard.dataset.taskId;
-
-                    const previousColumn = originalColumn;
-
-                    const emptyMessage =
-                        column.querySelector('.kanban-empty');
-
-                    if (emptyMessage) {
-                        emptyMessage.remove();
-                    }
-
-                    column.appendChild(draggedCard);
-
-                    draggedCard.dataset.status = newStatus;
-
-
-                    try {
-
-                        const response = await fetch(
-                            '{{ route('tasks.status', [$team, '__TASK__']) }}'
-                                .replace('__TASK__', taskId),
-                            {
-                                method: 'PATCH',
-
-                                headers: {
-                                    'Content-Type': 'application/json',
-
-                                    'Accept': 'application/json',
-
-                                    'X-CSRF-TOKEN':
-                                        document
-                                            .querySelector(
-                                                'meta[name="csrf-token"]'
-                                            )
-                                            ?.getAttribute('content'),
-
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                },
-
-                                body: JSON.stringify({
-                                    status: newStatus,
-                                }),
-                            }
+                        column.classList.remove(
+                            'bg-indigo-50',
+                            'border-indigo-300'
                         );
 
 
-                        if (!response.ok) {
-
-                            throw new Error(
-                                'No se pudo actualizar la tarea.'
-                            );
-
+                        /**
+                         * No realizar ninguna acción si actualmente
+                         * no existe una tarjeta siendo arrastrada.
+                         */
+                        if (!draggedCard) {
+                            return;
                         }
 
 
-                        const data = await response.json();
+                        /**
+                         * Obtiene el nuevo estado asociado
+                         * a la columna seleccionada.
+                         *
+                         * @type {string}
+                         */
+                        const newStatus =
+                            column.dataset.status;
 
 
-                        showKanbanNotification(
-                            data.message ||
-                            'La tarea se movió correctamente.',
-                            'success'
-                        );
+                        /**
+                         * Si la tarea ya pertenece a esta columna,
+                         * no es necesario realizar ninguna actualización.
+                         */
+                        if (newStatus === originalStatus) {
+                            return;
+                        }
 
 
-                        updateKanbanCounts();
+                        /**
+                         * Obtiene el identificador de la tarea.
+                         *
+                         * @type {string}
+                         */
+                        const taskId =
+                            draggedCard.dataset.taskId;
 
 
-                    } catch (error) {
-
-                        previousColumn.appendChild(draggedCard);
-
-                        draggedCard.dataset.status = originalStatus;
-
-
-                        showKanbanNotification(
-                            'No se pudo mover la tarea.',
-                            'error'
-                        );
+                        /**
+                         * Guarda la columna original para poder
+                         * restaurar la tarea si la petición falla.
+                         *
+                         * @type {Element|null}
+                         */
+                        const previousColumn =
+                            originalColumn;
 
 
-                        updateKanbanCounts();
+                        /**
+                         * Busca el mensaje que indica que una columna
+                         * está vacía y lo elimina si existe.
+                         */
+                        const emptyMessage =
+                            column.querySelector('.kanban-empty');
 
-                    }
-
-                });
-
-            });
+                        if (emptyMessage) {
+                            emptyMessage.remove();
+                        }
 
 
-            function updateKanbanCounts() {
+                        /**
+                         * Mueve visualmente la tarjeta a la
+                         * nueva columna.
+                         */
+                        column.appendChild(draggedCard);
 
-                document
-                    .querySelectorAll('.kanban-column')
-                    .forEach(function (column) {
+                        /**
+                         * Actualiza temporalmente el estado
+                         * de la tarjeta en el DOM.
+                         */
+                        draggedCard.dataset.status = newStatus;
 
-                        const tasksContainer =
-                            column.querySelector('.kanban-tasks');
 
-                        const count =
-                            tasksContainer.querySelectorAll(
-                                '.kanban-card'
-                            ).length;
+                        try {
 
-                        const counter =
-                            column.querySelector('.kanban-count');
+                            /**
+                             * Envía al servidor el nuevo estado
+                             * de la tarea mediante una petición PATCH.
+                             *
+                             * @type {Response}
+                             */
+                            const response = await fetch(
+                                '{{ route('tasks.status', [$team, '__TASK__']) }}'
+                                    .replace('__TASK__', taskId),
+                                {
+                                    method: 'PATCH',
 
-                        counter.textContent = count;
+                                    headers: {
+                                        'Content-Type':
+                                            'application/json',
 
-                        const empty =
-                            tasksContainer.querySelector(
-                                '.kanban-empty'
+                                        'Accept':
+                                            'application/json',
+
+                                        'X-CSRF-TOKEN':
+                                            document
+                                                .querySelector(
+                                                    'meta[name="csrf-token"]'
+                                                )
+                                                ?.getAttribute('content'),
+
+                                        'X-Requested-With':
+                                            'XMLHttpRequest',
+                                    },
+
+                                    body: JSON.stringify({
+                                        status: newStatus,
+                                    }),
+                                }
                             );
 
 
-                        if (count === 0 && !empty) {
+                            /**
+                             * Comprueba si el servidor respondió
+                             * correctamente.
+                             */
+                            if (!response.ok) {
 
-                            const emptyMessage =
-                                document.createElement('div');
-
-                            emptyMessage.className =
-                                'kanban-empty text-center py-8 px-4 text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-xl';
-
-                            const status =
-                                tasksContainer.dataset.status;
-
-
-                            if (status === 'por hacer') {
-
-                                emptyMessage.textContent =
-                                    'No hay tareas por hacer.';
-
-                            } else if (status === 'en progreso') {
-
-                                emptyMessage.textContent =
-                                    'No hay tareas en progreso.';
-
-                            } else {
-
-                                emptyMessage.textContent =
-                                    'No hay tareas terminadas.';
+                                throw new Error(
+                                    'No se pudo actualizar la tarea.'
+                                );
 
                             }
 
 
-                            tasksContainer.appendChild(
-                                emptyMessage
+                            /**
+                             * Convierte la respuesta del servidor
+                             * a un objeto JavaScript.
+                             *
+                             * @type {Object}
+                             */
+                            const data =
+                                await response.json();
+
+
+                            /**
+                             * Muestra una notificación indicando
+                             * que la tarea fue movida correctamente.
+                             */
+                            showKanbanNotification(
+                                data.message ||
+                                'La tarea se movió correctamente.',
+                                'success'
                             );
+
+
+                            /**
+                             * Actualiza los contadores de las
+                             * columnas del tablero.
+                             */
+                            updateKanbanCounts();
+
+
+                        } catch (error) {
+
+                            /**
+                             * Si la petición falla, devuelve la tarjeta
+                             * a su columna anterior.
+                             */
+                            previousColumn.appendChild(
+                                draggedCard
+                            );
+
+                            /**
+                             * Restaura el estado original de la tarea.
+                             */
+                            draggedCard.dataset.status =
+                                originalStatus;
+
+
+                            /**
+                             * Informa al usuario que el movimiento
+                             * no pudo guardarse.
+                             */
+                            showKanbanNotification(
+                                'No se pudo mover la tarea.',
+                                'error'
+                            );
+
+
+                            /**
+                             * Actualiza nuevamente los contadores
+                             * después de restaurar la tarjeta.
+                             */
+                            updateKanbanCounts();
 
                         }
 
                     });
 
-            }
-
-            function showKanbanNotification(message, type) {
-
-                const existing =
-                    document.querySelector(
-                        '#kanban-notification'
-                    );
-
-                if (existing) {
-                    existing.remove();
-                }
+                });
 
 
-                const notification =
-                    document.createElement('div');
+                /**
+                 * Actualiza la cantidad de tareas mostrada
+                 * en cada columna del tablero Kanban.
+                 *
+                 * También crea un mensaje cuando una columna
+                 * queda completamente vacía.
+                 *
+                 * @returns {void}
+                 */
+                function updateKanbanCounts() {
 
-                notification.id =
-                    'kanban-notification';
+                    document
+                        .querySelectorAll('.kanban-column')
+                        .forEach(function (column) {
 
-
-                const colorClasses =
-                    type === 'success'
-                        ? 'text-green-800 bg-green-50 border-green-200'
-                        : 'text-red-800 bg-red-50 border-red-200';
-
-
-                notification.className =
-                    `fixed top-5 right-5 z-50 max-w-sm px-4 py-3 border rounded-lg shadow-lg text-sm font-medium ${colorClasses}`;
-
-
-                notification.textContent = message;
-
-
-                document.body.appendChild(
-                    notification
-                );
-
-
-                setTimeout(function () {
-
-                    notification.remove();
-
-                }, 3000);
-
-            }
-
-            const taskSearch = document.getElementById('task-search');
-
-            const statusFilter = document.getElementById('status-filter');
+                            /**
+                             * Obtiene el contenedor de tareas
+                             * de la columna actual.
+                             *
+                             * @type {Element|null}
+                             */
+                            const tasksContainer =
+                                column.querySelector('.kanban-tasks');
 
 
-            function filterKanbanTasks() {
-
-                const search =
-                    taskSearch.value
-                        .toLowerCase()
-                        .trim();
-
-                const selectedStatus =
-                    statusFilter.value;
-            
-                const selectedAssignee =
-                    document.getElementById('assignee-filter').value;
-
-                const selectedDueDate =
-                    document.getElementById('due-date-filter').value;
+                            /**
+                             * Cuenta las tarjetas existentes
+                             * dentro de la columna.
+                             *
+                             * @type {number}
+                             */
+                            const count =
+                                tasksContainer.querySelectorAll(
+                                    '.kanban-card'
+                                ).length;
 
 
-                document
-                    .querySelectorAll('.kanban-column')
-                    .forEach(function (column) {
-
-                        const columnStatus =
-                            column.dataset.status;
-
-                        const cards =
-                            column.querySelectorAll('.kanban-card');
-
-                        let visibleCards = 0;
+                            /**
+                             * Obtiene el elemento encargado de
+                             * mostrar el contador de la columna.
+                             *
+                             * @type {Element|null}
+                             */
+                            const counter =
+                                column.querySelector('.kanban-count');
 
 
-                        cards.forEach(function (card) {
+                            /**
+                             * Actualiza visualmente el contador.
+                             */
+                            counter.textContent = count;
 
-                            const title =
-                                card
-                                    .querySelector('h4')
-                                    ?.textContent
-                                    .toLowerCase() || '';
 
-                            const description =
-                                card
-                                    .querySelector('p')
-                                    ?.textContent
-                                    .toLowerCase() || '';
+                            /**
+                             * Comprueba si ya existe un mensaje
+                             * indicando que la columna está vacía.
+                             *
+                             * @type {Element|null}
+                             */
+                            const empty =
+                                tasksContainer.querySelector(
+                                    '.kanban-empty'
+                                );
 
-                            const matchesSearch =
-                                search === '' ||
-                                title.includes(search) ||
-                                description.includes(search);
 
-                            const matchesStatus =
-                                selectedStatus === 'todos' ||
-                                columnStatus === selectedStatus;
+                            /**
+                             * Si la columna está vacía y todavía
+                             * no existe un mensaje, crea uno.
+                             */
+                            if (count === 0 && !empty) {
 
-                            const cardAssignee =
-                                card.dataset.assignee;
+                                /**
+                                 * Crea el elemento que mostrará
+                                 * el mensaje de columna vacía.
+                                 *
+                                 * @type {HTMLDivElement}
+                                 */
+                                const emptyMessage =
+                                    document.createElement('div');
 
-                            const matchesAssignee =
-                                selectedAssignee === 'todos' ||
-                                cardAssignee === selectedAssignee;
 
-                            const cardDueDate =
-                                card.dataset.dueDate;
+                                emptyMessage.className =
+                                    'kanban-empty text-center py-8 px-4 text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-xl';
 
-                            const today =
-                                new Date();
 
-                            today.setHours(0, 0, 0, 0);
+                                /**
+                                 * Obtiene el estado correspondiente
+                                 * a la columna.
+                                 *
+                                 * @type {string|undefined}
+                                 */
+                                const status =
+                                    tasksContainer.dataset.status;
 
-                            const dueDate =
-                                cardDueDate
-                                    ? new Date(cardDueDate + 'T00:00:00')
-                                    : null;
 
-                            let matchesDueDate = true;
+                                /**
+                                 * Define el mensaje correspondiente
+                                 * al estado de la columna.
+                                 */
+                                if (status === 'por hacer') {
 
-                            if (selectedDueDate === 'sin_fecha') {
+                                    emptyMessage.textContent =
+                                        'No hay tareas por hacer.';
 
-                                matchesDueDate =
-                                    !cardDueDate;
+                                } else if (status === 'en progreso') {
 
-                            } else if (selectedDueDate === 'hoy') {
-
-                                matchesDueDate =
-                                    dueDate &&
-                                    dueDate.getTime() === today.getTime();
-
-                            } else if (selectedDueDate === 'proximos_7') {
-
-                                if (!dueDate) {
-
-                                    matchesDueDate = false;
+                                    emptyMessage.textContent =
+                                        'No hay tareas en progreso.';
 
                                 } else {
 
-                                    const sevenDaysFromNow =
-                                        new Date(today);
+                                    emptyMessage.textContent =
+                                        'No hay tareas terminadas.';
 
-                                    sevenDaysFromNow.setDate(
-                                        sevenDaysFromNow.getDate() + 7
-                                    );
-
-                                    matchesDueDate =
-                                        dueDate >= today &&
-                                        dueDate <= sevenDaysFromNow;
                                 }
 
-                            } else if (selectedDueDate === 'vencidas') {
 
-                                matchesDueDate =
-                                    dueDate &&
-                                    dueDate < today;
-                            }
-
-                            const shouldShow =
-                                matchesSearch &&
-                                matchesStatus &&
-                                matchesAssignee &&
-                                matchesDueDate;
-
-
-                            if (shouldShow) {
-
-                                card.style.display = '';
-
-                                visibleCards++;
-
-                            } else {
-
-                                card.style.display = 'none';
+                                /**
+                                 * Agrega el mensaje al contenedor
+                                 * de tareas de la columna.
+                                 */
+                                tasksContainer.appendChild(
+                                    emptyMessage
+                                );
 
                             }
 
                         });
 
-                        let filterMessage =
-                            column.querySelector('.kanban-filter-empty');
+                }
 
 
-                        if (visibleCards === 0) {
+                /**
+                 * Muestra una notificación temporal en la parte
+                 * superior derecha del tablero Kanban.
+                 *
+                 * @param {string} message Mensaje que se mostrará al usuario.
+                 * @param {'success'|'error'} type Tipo de notificación.
+                 * @returns {void}
+                 */
+                function showKanbanNotification(message, type) {
 
-                            if (!filterMessage) {
+                    /**
+                     * Busca una notificación existente.
+                     *
+                     * @type {Element|null}
+                     */
+                    const existing =
+                        document.querySelector(
+                            '#kanban-notification'
+                        );
 
-                                filterMessage =
-                                    document.createElement('div');
 
-                                filterMessage.className =
-                                    'kanban-filter-empty text-center py-8 px-4 text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-xl';
+                    /**
+                     * Elimina la notificación anterior para
+                     * evitar mostrar varias simultáneamente.
+                     */
+                    if (existing) {
+                        existing.remove();
+                    }
 
-                                filterMessage.textContent =
-                                    'No hay tareas que coincidan con el filtro.';
 
-                                column
-                                    .querySelector('.kanban-tasks')
-                                    .appendChild(filterMessage);
+                    /**
+                     * Crea el elemento HTML de la nueva notificación.
+                     *
+                     * @type {HTMLDivElement}
+                     */
+                    const notification =
+                        document.createElement('div');
+
+
+                    notification.id =
+                        'kanban-notification';
+
+
+                    /**
+                     * Define las clases visuales dependiendo
+                     * del tipo de notificación.
+                     *
+                     * @type {string}
+                     */
+                    const colorClasses =
+                        type === 'success'
+                            ? 'text-green-800 bg-green-50 border-green-200'
+                            : 'text-red-800 bg-red-50 border-red-200';
+
+
+                    notification.className =
+                        `fixed top-5 right-5 z-50 max-w-sm px-4 py-3 border rounded-lg shadow-lg text-sm font-medium ${colorClasses}`;
+
+
+                    /**
+                     * Inserta el mensaje recibido dentro
+                     * de la notificación.
+                     */
+                    notification.textContent =
+                        message;
+
+
+                    /**
+                     * Agrega la notificación al documento.
+                     */
+                    document.body.appendChild(
+                        notification
+                    );
+
+
+                    /**
+                     * Elimina automáticamente la notificación
+                     * después de tres segundos.
+                     */
+                    setTimeout(function () {
+
+                        notification.remove();
+
+                    }, 3000);
+
+                }
+
+
+                /**
+                 * Obtiene el campo de búsqueda de tareas.
+                 *
+                 * @type {HTMLElement|null}
+                 */
+                const taskSearch =
+                    document.getElementById('task-search');
+
+
+                /**
+                 * Obtiene el filtro de estado de las tareas.
+                 *
+                 * @type {HTMLElement|null}
+                 */
+                const statusFilter =
+                    document.getElementById('status-filter');
+
+
+                /**
+                 * Filtra las tareas del tablero según los criterios
+                 * seleccionados por el usuario.
+                 *
+                 * Los filtros disponibles son:
+                 *
+                 * - Texto de búsqueda.
+                 * - Estado.
+                 * - Integrante asignado.
+                 * - Fecha de vencimiento.
+                 *
+                 * @returns {void}
+                 */
+                function filterKanbanTasks() {
+
+                    /**
+                     * Obtiene y normaliza el texto introducido
+                     * en el buscador.
+                     *
+                     * @type {string}
+                     */
+                    const search =
+                        taskSearch.value
+                            .toLowerCase()
+                            .trim();
+
+
+                    /**
+                     * Obtiene el estado seleccionado.
+                     *
+                     * @type {string}
+                     */
+                    const selectedStatus =
+                        statusFilter.value;
+
+
+                    /**
+                     * Obtiene el integrante seleccionado
+                     * en el filtro de asignación.
+                     *
+                     * @type {string}
+                     */
+                    const selectedAssignee =
+                        document
+                            .getElementById('assignee-filter')
+                            .value;
+
+
+                    /**
+                     * Obtiene el filtro seleccionado
+                     * para las fechas de vencimiento.
+                     *
+                     * @type {string}
+                     */
+                    const selectedDueDate =
+                        document
+                            .getElementById('due-date-filter')
+                            .value;
+
+
+                    /**
+                     * Recorre todas las columnas del Kanban
+                     * para aplicar los filtros.
+                     */
+                    document
+                        .querySelectorAll('.kanban-column')
+                        .forEach(function (column) {
+
+                            /**
+                             * Estado asociado a la columna actual.
+                             *
+                             * @type {string|undefined}
+                             */
+                            const columnStatus =
+                                column.dataset.status;
+
+
+                            /**
+                             * Obtiene las tarjetas existentes
+                             * dentro de la columna.
+                             *
+                             * @type {NodeListOf<Element>}
+                             */
+                            const cards =
+                                column.querySelectorAll(
+                                    '.kanban-card'
+                                );
+
+
+                            /**
+                             * Cuenta las tarjetas que permanecen
+                             * visibles después de aplicar los filtros.
+                             *
+                             * @type {number}
+                             */
+                            let visibleCards = 0;
+
+
+                            /**
+                             * Evalúa individualmente cada tarjeta
+                             * para determinar si debe mostrarse.
+                             *
+                             * @param {Element} card Tarjeta de tarea.
+                             * @returns {void}
+                             */
+                            cards.forEach(function (card) {
+
+                                /**
+                                 * Obtiene el título de la tarea.
+                                 *
+                                 * @type {string}
+                                 */
+                                const title =
+                                    card
+                                        .querySelector('h4')
+                                        ?.textContent
+                                        .toLowerCase() || '';
+
+
+                                /**
+                                 * Obtiene la descripción de la tarea.
+                                 *
+                                 * @type {string}
+                                 */
+                                const description =
+                                    card
+                                        .querySelector('p')
+                                        ?.textContent
+                                        .toLowerCase() || '';
+
+
+                                /**
+                                 * Comprueba si el texto de búsqueda
+                                 * coincide con el título o descripción.
+                                 *
+                                 * @type {boolean}
+                                 */
+                                const matchesSearch =
+                                    search === '' ||
+                                    title.includes(search) ||
+                                    description.includes(search);
+
+
+                                /**
+                                 * Comprueba si la tarea pertenece
+                                 * al estado seleccionado.
+                                 *
+                                 * @type {boolean}
+                                 */
+                                const matchesStatus =
+                                    selectedStatus === 'todos' ||
+                                    columnStatus === selectedStatus;
+
+
+                                /**
+                                 * Obtiene el identificador del integrante
+                                 * asignado a la tarea.
+                                 *
+                                 * @type {string|undefined}
+                                 */
+                                const cardAssignee =
+                                    card.dataset.assignee;
+
+
+                                /**
+                                 * Comprueba si la tarea coincide
+                                 * con el integrante seleccionado.
+                                 *
+                                 * @type {boolean}
+                                 */
+                                const matchesAssignee =
+                                    selectedAssignee === 'todos' ||
+                                    cardAssignee === selectedAssignee;
+
+
+                                /**
+                                 * Obtiene la fecha de vencimiento
+                                 * almacenada en la tarjeta.
+                                 *
+                                 * @type {string|undefined}
+                                 */
+                                const cardDueDate =
+                                    card.dataset.dueDate;
+
+
+                                /**
+                                 * Obtiene la fecha actual sin considerar
+                                 * la hora.
+                                 *
+                                 * @type {Date}
+                                 */
+                                const today =
+                                    new Date();
+
+                                today.setHours(0, 0, 0, 0);
+
+
+                                /**
+                                 * Convierte la fecha de vencimiento
+                                 * de la tarea a un objeto Date.
+                                 *
+                                 * @type {Date|null}
+                                 */
+                                const dueDate =
+                                    cardDueDate
+                                        ? new Date(
+                                            cardDueDate + 'T00:00:00'
+                                        )
+                                        : null;
+
+
+                                /**
+                                 * Indica inicialmente que la tarea
+                                 * cumple el filtro de fecha.
+                                 *
+                                 * @type {boolean}
+                                 */
+                                let matchesDueDate = true;
+
+
+                                /**
+                                 * Filtra las tareas que no tienen
+                                 * una fecha de vencimiento.
+                                 */
+                                if (selectedDueDate === 'sin_fecha') {
+
+                                    matchesDueDate =
+                                        !cardDueDate;
+
+
+                                /**
+                                 * Filtra las tareas cuya fecha
+                                 * de vencimiento corresponde a hoy.
+                                 */
+                                } else if (selectedDueDate === 'hoy') {
+
+                                    matchesDueDate =
+                                        dueDate &&
+                                        dueDate.getTime() === today.getTime();
+
+
+                                /**
+                                 * Filtra las tareas cuyo vencimiento
+                                 * está dentro de los próximos siete días.
+                                 */
+                                } else if (
+                                    selectedDueDate === 'proximos_7'
+                                ) {
+
+                                    if (!dueDate) {
+
+                                        matchesDueDate = false;
+
+                                    } else {
+
+                                        /**
+                                         * Calcula la fecha correspondiente
+                                         * a siete días después de hoy.
+                                         *
+                                         * @type {Date}
+                                         */
+                                        const sevenDaysFromNow =
+                                            new Date(today);
+
+                                        sevenDaysFromNow.setDate(
+                                            sevenDaysFromNow.getDate() + 7
+                                        );
+
+                                        matchesDueDate =
+                                            dueDate >= today &&
+                                            dueDate <= sevenDaysFromNow;
+                                    }
+
+
+                                /**
+                                 * Filtra las tareas cuya fecha
+                                 * de vencimiento ya pasó.
+                                 */
+                                } else if (
+                                    selectedDueDate === 'vencidas'
+                                ) {
+
+                                    matchesDueDate =
+                                        dueDate &&
+                                        dueDate < today;
+                                }
+
+
+                                /**
+                                 * Determina si la tarjeta cumple
+                                 * todos los filtros seleccionados.
+                                 *
+                                 * @type {boolean}
+                                 */
+                                const shouldShow =
+                                    matchesSearch &&
+                                    matchesStatus &&
+                                    matchesAssignee &&
+                                    matchesDueDate;
+
+
+                                /**
+                                 * Muestra u oculta la tarjeta según
+                                 * el resultado de los filtros.
+                                 */
+                                if (shouldShow) {
+
+                                    card.style.display = '';
+
+                                    visibleCards++;
+
+                                } else {
+
+                                    card.style.display = 'none';
+
+                                }
+
+                            });
+
+
+                            /**
+                             * Busca el mensaje que aparece cuando
+                             * ningún resultado coincide con los filtros.
+                             *
+                             * @type {Element|null}
+                             */
+                            let filterMessage =
+                                column.querySelector(
+                                    '.kanban-filter-empty'
+                                );
+
+
+                            /**
+                             * Si no hay tarjetas visibles, muestra
+                             * un mensaje informativo.
+                             */
+                            if (visibleCards === 0) {
+
+                                if (!filterMessage) {
+
+                                    /**
+                                     * Crea el mensaje de resultados vacíos.
+                                     *
+                                     * @type {HTMLDivElement}
+                                     */
+                                    filterMessage =
+                                        document.createElement('div');
+
+
+                                    filterMessage.className =
+                                        'kanban-filter-empty text-center py-8 px-4 text-sm text-gray-400 border-2 border-dashed border-gray-200 rounded-xl';
+
+
+                                    filterMessage.textContent =
+                                        'No hay tareas que coincidan con el filtro.';
+
+
+                                    column
+                                        .querySelector('.kanban-tasks')
+                                        .appendChild(
+                                            filterMessage
+                                        );
+
+                                }
+
+                                filterMessage.style.display = '';
+
+                            } else {
+
+                                /**
+                                 * Si existen resultados, oculta
+                                 * el mensaje de resultados vacíos.
+                                 */
+                                if (filterMessage) {
+
+                                    filterMessage.style.display =
+                                        'none';
+
+                                }
 
                             }
 
-                            filterMessage.style.display = '';
+                        });
 
-                        } else {
-
-                            if (filterMessage) {
-
-                                filterMessage.style.display = 'none';
-
-                            }
-
-                        }
-
-                    });
-
-            }
+                }
 
 
-            taskSearch.addEventListener(
-                'input',
-                filterKanbanTasks
-            );
-
-
-            statusFilter.addEventListener(
-                'change',
-                filterKanbanTasks
-            );
-
-            document
-                .getElementById('assignee-filter')
-                .addEventListener(
-                    'change',
+                /**
+                 * Ejecuta el filtrado cada vez que el usuario
+                 * escribe algo en el buscador.
+                 *
+                 * @listens input
+                 */
+                taskSearch.addEventListener(
+                    'input',
                     filterKanbanTasks
                 );
-            
-            document
-                .getElementById('due-date-filter')
-                .addEventListener(
+
+
+                /**
+                 * Ejecuta el filtrado cuando cambia el filtro
+                 * de estado.
+                 *
+                 * @listens change
+                 */
+                statusFilter.addEventListener(
                     'change',
                     filterKanbanTasks
                 );
 
-        });
 
-    </script>
+                /**
+                 * Ejecuta el filtrado cuando cambia el integrante
+                 * asignado seleccionado.
+                 *
+                 * @listens change
+                 */
+                document
+                    .getElementById('assignee-filter')
+                    .addEventListener(
+                        'change',
+                        filterKanbanTasks
+                    );
+
+
+                /**
+                 * Ejecuta el filtrado cuando cambia el filtro
+                 * de fecha de vencimiento.
+                 *
+                 * @listens change
+                 */
+                document
+                    .getElementById('due-date-filter')
+                    .addEventListener(
+                        'change',
+                        filterKanbanTasks
+                    );
+
+            });
+
+        </script>
 
 </x-app-layout>
