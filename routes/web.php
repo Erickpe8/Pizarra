@@ -63,6 +63,10 @@ Route::middleware('auth')->group(function () {
 
     Route::put('/teams/{team}/tasks/{task}', [TaskController::class, 'update'])
         ->name('tasks.update');
+    
+    Route::patch(
+        '/teams/{team}/tasks/{task}/status',[TaskController::class, 'updateStatus'])
+        ->name('tasks.status');
 
     Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])
         ->middleware('role:lider')

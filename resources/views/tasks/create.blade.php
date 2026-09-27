@@ -18,15 +18,7 @@
 
         </div>
 
-
-        @if (session('success'))
-
-            <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
-                {{ session('success') }}
-            </div>
-
-        @endif
-
+        <x-flash-message />
 
         <form
             method="POST"
@@ -82,53 +74,6 @@
                 >{{ old('description') }}</textarea>
 
                 @error('description')
-                    <p class="mt-1 text-sm text-red-600">
-                        {{ $message }}
-                    </p>
-                @enderror
-
-            </div>
-
-            <div>
-
-                <label
-                    for="status"
-                    class="block text-sm font-semibold text-gray-700"
-                >
-                    Estado
-                </label>
-
-                <select
-                    id="status"
-                    name="status"
-                    required
-                    class="mt-2 block w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                >
-
-                    <option
-                        value="por hacer"
-                        @selected(old('status', 'por hacer') === 'por hacer')
-                    >
-                        Por hacer
-                    </option>
-
-                    <option
-                        value="en progreso"
-                        @selected(old('status') === 'en progreso')
-                    >
-                        En progreso
-                    </option>
-
-                    <option
-                        value="terminada"
-                        @selected(old('status') === 'terminada')
-                    >
-                        Terminada
-                    </option>
-
-                </select>
-
-                @error('status')
                     <p class="mt-1 text-sm text-red-600">
                         {{ $message }}
                     </p>
@@ -263,8 +208,6 @@
                 >
                     Crear tarea
                 </button>
-
-                <x-flash-message />
 
                 <a
                     href="{{ route('teams.workspace', $team) }}"
