@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\Team;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -67,11 +68,6 @@ class TaskController extends Controller
                 'string',
             ],
 
-            'status' => [
-                'required',
-                'in:por hacer,en progreso,terminada',
-            ],
-
             'assigned_to' => [
                 'nullable',
                 'integer',
@@ -113,7 +109,9 @@ class TaskController extends Controller
         Task::create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'status' => $validated['status'],
+
+            'status' => 'por hacer',
+
             'team_id' => $team->id,
             'created_by' => $user->id,
             'assigned_to' => $validated['assigned_to'] ?? null,
@@ -195,7 +193,6 @@ class TaskController extends Controller
             abort(403);
         }
 
-        // Verificar que la tarea pertenece al equipo.
         if ($task->team_id !== $team->id) {
             abort(404);
         }
@@ -219,11 +216,6 @@ class TaskController extends Controller
             'description' => [
                 'nullable',
                 'string',
-            ],
-
-            'status' => [
-                'required',
-                'in:por hacer,en progreso,terminada',
             ],
 
             'assigned_to' => [
@@ -267,7 +259,6 @@ class TaskController extends Controller
         $task->update([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'status' => $validated['status'],
             'assigned_to' => $validated['assigned_to'] ?? null,
             'assigned_at' => $validated['assigned_at'] ?? null,
             'due_date' => $validated['due_date'] ?? null,
@@ -280,5 +271,38 @@ class TaskController extends Controller
                 'success',
                 'La tarea se actualizó correctamente.'
             );
+    }
+
+    public function updateStatus(
+        Request $request,
+        Team $team,
+        Task $task
+    ): JsonResponse {
+        $user = Auth::user();
+
+        if (!$user->teams()->where('teams.id', $team->id)->exists()) {
+            abort(403);
+        }
+
+        if ($task->team_id !== $team->id) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:por hacer,en progreso,terminada',
+            ],
+        ]);
+
+        $task->update([
+            'status' => $validated['status'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'La tarea se movió correctamente.',
+            'status' => $task->status,
+        ]);
     }
 }

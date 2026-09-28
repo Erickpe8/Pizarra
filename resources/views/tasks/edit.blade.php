@@ -78,65 +78,6 @@
                 <div>
 
                     <label
-                        for="description"
-                        class="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                        Descripción
-                    </label>
-
-                    <textarea
-                        id="description"
-                        name="description"
-                        rows="5"
-                        class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    >{{ old('description', $task->description) }}</textarea>
-
-                </div>
-
-                <div>
-
-                    <label
-                        for="status"
-                        class="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                        Estado
-                    </label>
-
-                    <select
-                        id="status"
-                        name="status"
-                        required
-                        class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-
-                        <option
-                            value="por hacer"
-                            @selected(old('status', $task->status) === 'por hacer')
-                        >
-                            Por hacer
-                        </option>
-
-                        <option
-                            value="en progreso"
-                            @selected(old('status', $task->status) === 'en progreso')
-                        >
-                            En progreso
-                        </option>
-
-                        <option
-                            value="terminada"
-                            @selected(old('status', $task->status) === 'terminada')
-                        >
-                            Terminada
-                        </option>
-
-                    </select>
-
-                </div>
-
-                <div>
-
-                    <label
                         for="assigned_to"
                         class="block text-sm font-medium text-gray-700 mb-2"
                     >
