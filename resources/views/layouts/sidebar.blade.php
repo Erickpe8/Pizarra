@@ -1,6 +1,6 @@
-<aside class="w-64 min-w-64 shrink-0 bg-white border-r border-gray-200 min-h-screen flex flex-col">
+<aside class="w-64 min-w-64 shrink-0 bg-blue-100 border-r border-blue-200 min-h-screen flex flex-col">
 
-    <div class="h-20 flex items-center px-6 border-b border-gray-200">
+    <div class="h-20 flex items-center px-6 border-b border-blue-200">
         <a href="{{ route('dashboard') }}"
            class="text-3xl font-bold text-indigo-600">
             Pizarra

@@ -18,26 +18,15 @@
 
         </div>
 
-
-        @if (session('success'))
-
-            <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
-                {{ session('success') }}
-            </div>
-
-        @endif
-
+        <x-flash-message />
 
         <form
             method="POST"
             action="{{ route('tasks.store', $team) }}"
-            class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6"
+            class="bg-blue-100 rounded-xl shadow-sm border border-blue-200 p-6 space-y-6"
         >
 
             @csrf
-
-
-            {{-- Título --}}
 
             <div>
 
@@ -67,9 +56,6 @@
 
             </div>
 
-
-            {{-- Descripción --}}
-
             <div>
 
                 <label
@@ -94,59 +80,6 @@
                 @enderror
 
             </div>
-
-
-            {{-- Estado --}}
-
-            <div>
-
-                <label
-                    for="status"
-                    class="block text-sm font-semibold text-gray-700"
-                >
-                    Estado
-                </label>
-
-                <select
-                    id="status"
-                    name="status"
-                    required
-                    class="mt-2 block w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                >
-
-                    <option
-                        value="por hacer"
-                        @selected(old('status', 'por hacer') === 'por hacer')
-                    >
-                        Por hacer
-                    </option>
-
-                    <option
-                        value="en progreso"
-                        @selected(old('status') === 'en progreso')
-                    >
-                        En progreso
-                    </option>
-
-                    <option
-                        value="terminada"
-                        @selected(old('status') === 'terminada')
-                    >
-                        Terminada
-                    </option>
-
-                </select>
-
-                @error('status')
-                    <p class="mt-1 text-sm text-red-600">
-                        {{ $message }}
-                    </p>
-                @enderror
-
-            </div>
-
-
-            {{-- Asignar a --}}
 
             <div>
 
@@ -188,9 +121,6 @@
 
             </div>
 
-
-            {{-- Fecha de asignación --}}
-
             <div>
 
                 <label
@@ -216,9 +146,6 @@
 
             </div>
 
-
-            {{-- Fecha límite --}}
-
             <div>
 
                 <label
@@ -243,9 +170,6 @@
                 @enderror
 
             </div>
-
-
-            {{-- Tiempo estimado --}}
 
             <div>
 
@@ -275,7 +199,6 @@
             </div>
 
 
-            {{-- Botones --}}
 
             <div class="flex flex-wrap gap-3 pt-4">
 

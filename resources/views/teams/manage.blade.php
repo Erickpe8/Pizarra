@@ -119,30 +119,29 @@
                                 </div>
 
 
-                                <div class="flex flex-wrap gap-2">
+                                <div class="flex items-center gap-2 shrink-0 self-start">
 
-                                    {{-- Tanto líderes como trabajadores pueden seleccionar el equipo --}}
                                     <form
                                         method="POST"
                                         action="{{ route('teams.select', $team) }}"
+                                        class="flex shrink-0"
                                     >
                                         @csrf
 
                                         <button
                                             type="submit"
-                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                            class="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                                         >
                                             Trabajar en este equipo
                                         </button>
                                     </form>
 
 
-                                    {{-- Solo el líder puede administrar el equipo --}}
                                     @if ($isLeader)
 
                                         <a
                                             href="{{ route('teams.edit', $team) }}"
-                                            class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                            class="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                                         >
                                             Editar
                                         </a>
@@ -151,6 +150,7 @@
                                         <form
                                             method="POST"
                                             action="{{ route('teams.destroy', $team) }}"
+                                            class="flex shrink-0"
                                             onsubmit="return confirm('¿Estás seguro de que quieres eliminar este equipo? Esta acción no se puede deshacer.');"
                                         >
                                             @csrf
@@ -158,7 +158,7 @@
 
                                             <button
                                                 type="submit"
-                                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                                                class="inline-flex items-center justify-center whitespace-nowrap px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
                                             >
                                                 Eliminar equipo
                                             </button>
