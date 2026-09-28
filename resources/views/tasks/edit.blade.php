@@ -78,6 +78,32 @@
                 <div>
 
                     <label
+                        for="description"
+                        class="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                        Contenido / descripción
+                    </label>
+
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="6"
+                        maxlength="5000"
+                        placeholder="Escribe el contenido o descripción de la tarea..."
+                        class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                    >{{ old('description', $task->description) }}</textarea>
+
+                    @error('description')
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
+
+                </div>
+
+                <div>
+
+                    <label
                         for="assigned_to"
                         class="block text-sm font-medium text-gray-700 mb-2"
                     >

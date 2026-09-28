@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CommentController;
 
 
 Route::get('/', function () {
@@ -64,9 +65,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/teams/{team}/tasks/{task}', [TaskController::class, 'update'])
         ->name('tasks.update');
     
-    Route::patch(
-        '/teams/{team}/tasks/{task}/status',[TaskController::class, 'updateStatus'])
+    Route::patch('/teams/{team}/tasks/{task}/status',[TaskController::class, 'updateStatus'])
         ->name('tasks.status');
+
+    Route::post('/teams/{team}/tasks/{task}/comments',[CommentController::class, 'store'])
+        ->name('comments.store');
 
     Route::get('/teams/{team}/edit', [TeamController::class, 'edit'])
         ->middleware('role:lider')
